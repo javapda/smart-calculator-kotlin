@@ -3,6 +3,17 @@ package com.javapda.smartcalculator
 class SmartCalculator {
     fun somethingToTest(): Int = 34
     fun userInput(userInput: String): Boolean {
+        if (userInput.isBlank()) return true
+        if (userInput.isInvalidUserInput()) {
+            if (userInput.looksLikeACommand() && userInput.isInvalidCommand()) {
+                println("Unknown command")
+            } else if (userInput.isInvalidExpression()) {
+                println("Invalid expression")
+            } else {
+                throw IllegalArgumentException("ERROR: user input '$userInput' is neither a valid command nor a valid expression")
+            }
+            return true
+        }
         when (userInput) {
             "/exit" -> return false
             in listOf("/help", "?") -> {

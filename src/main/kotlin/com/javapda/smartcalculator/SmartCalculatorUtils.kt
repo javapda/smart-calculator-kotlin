@@ -33,6 +33,18 @@ fun Int.isEven(): Boolean = this % 2 == 0
 fun Int.isOdd(): Boolean = !isEven()
 fun String.isNotPlusMinusSequence(): Boolean = this.any(Char::isNotPlusOrMinusOperator)
 fun String.isPlusMinusSequence(): Boolean = !isNotPlusMinusSequence()
+fun String.isValidExpression(): Boolean {
+    val tokens = this.split("""\s+""".toRegex())
+    return tokens.all { token -> (token.isNumber() || token.isPlusMinusSequence()) }
+}
+
+fun String.isInvalidExpression(): Boolean = !isValidExpression()
+val validCommands = listOf("/exit", "/help")
+fun String.looksLikeACommand(): Boolean = isNotBlank() && this[0] == '/'
+fun String.isValidCommand(): Boolean = looksLikeACommand() && this in validCommands
+fun String.isInvalidCommand(): Boolean = !isValidCommand()
+fun String.isValidUserInput(): Boolean = isValidExpression() || isValidCommand()
+fun String.isInvalidUserInput(): Boolean = !isValidUserInput()
 
 /**
  * Plus minus net operator

@@ -13,6 +13,49 @@ import org.junit.jupiter.params.provider.ValueSource
  */
 class SmartCalculatorUtilsTest {
 
+    @ParameterizedTest
+    @ValueSource(strings = ["/go", "/bogus", "/exit"])
+    fun testStringLooksLikeACommand(userInputCandidate: String) {
+        assertTrue(userInputCandidate.looksLikeACommand())
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = ["/exit", "/help", "3 + 7", "5 --- 2 ++++++ 4 -- 2 ---- 1"])
+    fun testStringIsValidUserInput(userInputCandidate: String) {
+        assertTrue(userInputCandidate.isValidUserInput())
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = ["/go", "Hello Friend", "123+"])
+    fun testStringIsInvalidUserInput(userInputCandidate: String) {
+        assertTrue(userInputCandidate.isInvalidUserInput())
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = ["/exit", "/help"])
+    fun testStringIsValidCommand(commandCandidate: String) {
+        assertTrue(commandCandidate.isValidCommand())
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = ["/go"])
+    fun testStringIsInvalidCommand(commandCandidate: String) {
+        assertTrue(commandCandidate.isInvalidCommand())
+    }
+
+
+    @ParameterizedTest
+    @ValueSource(strings = ["3 + 5", "+15"])
+    fun testStringIsValidExpression(expressionCandidate: String) {
+        assertTrue(expressionCandidate.isValidExpression())
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = ["abc", "123+", "22-"])
+    fun testStringIsInvalidExpression(expressionCandidate: String) {
+        assertTrue(expressionCandidate.isInvalidExpression())
+    }
+
     @Test
     fun testEvaluateEquation() {
         assertEquals(43, evaluateEquation("3 + 4 - 17 + 37 ---- 16"))
