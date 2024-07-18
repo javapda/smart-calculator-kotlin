@@ -102,12 +102,33 @@ Kotlin: Plugin classpath entry points to a non-existent location: /home/jkroub/.
 Kotlin: Plugin classpath entry points to a non-existent location: /home/jkroub/.gradle/caches/modules-2/files-2.1/org.jetbrains.kotlin/kotlin-script-runtime/1.8.20/c850771e723701f9d63dbcf641429c0f29290074/kotlin-script-runtime-1.8.20.jar
 ```
 
-## Stage 8/8 :
-## Stage 7/8 :
-## Stage 6/8 :
-## Stage 5/8 :
-## Stage 4/8 :
-## Stage 3/8 :
+## Stage 8/8 : 
+## Stage 7/8 : 
+## Stage 6/8 : 
+## Stage 5/8 : 
+## Stage 4/8 : 
+## Stage 3/8 : [Count them all](https://hyperskill.org/projects/88/stages/488/implement)
+### Description
+In rare cases, we need to calculate the sum of only two numbers. Now it is time to teach the calculator to read an unlimited sequence of numbers. Also, let's take care of ourselves if after a while we want to remember what our program does. For this purpose, we'll introduce a new command /help to our calculator. Users who have first exposure to this program may use /help as well to know more about it!
+
+### Objectives
+* Add to the calculator the ability to read an unlimited sequence of numbers.
+* Add a /help command to print some information about the program.
+* If you encounter an empty line, do not output anything.
+### Examples
+The greater-than symbol followed by a space (>) represents the user input.
+```
+> 4 5 -2 3
+10
+> 4 7
+11
+> 6
+6
+> /help
+The program calculates the sum of numbers
+> /exit
+Bye!
+```
 ## Stage 2/8 : [2+2+](https://hyperskill.org/projects/88/stages/487/implement)
 ### Description
 It is high time to improve the previous version of the calculator. What if we have many pairs of numbers, the sum of which we need to find? It will be very inconvenient to run the program every time. So then let's add a loop to continuously calculate the sum of two numbers. Be sure to have a safeword to break the loop. Also, It would be nice to think through situations where users enter only one number or do not enter numbers at all.
