@@ -70,7 +70,7 @@ class SmartCalculatorUtilsTest {
 
     @ParameterizedTest
     @ValueSource(
-        strings = ["n = 5 + 9","x = 5 + 45",
+        strings = ["n = 5 + 9", "x = 5 + 45",
             "/exit", "/help", "3 + 7", "5 --- 2 ++++++ 4 -- 2 ---- 1"]
     )
     fun testStringIsValidUserInput(userInputCandidate: String) {
@@ -110,17 +110,30 @@ class SmartCalculatorUtilsTest {
 
     @Test
     fun testEvaluateEquation() {
-        assertEquals(43, evaluateEquation("3 + 4 - 17 + 37 ---- 16"))
-        assertEquals(5, evaluateEquation("10 --- 5"))
-        assertEquals(15, evaluateEquation("10 -- 5"))
-        assertEquals(5, evaluateEquation("10 - 5  "))
+        varDict.put("MyVarTestEvaluateEquation", 37)
+        println(varDict.info())
+        evaluateEquation("n = 9 + MyVarTestEvaluateEquation", varDict)
+        assertTrue("n".isExistingVariable(varDict))
 
-        assertEquals(-3, evaluateEquation("-3".split("""\s+""".toRegex())))
-        assertEquals(1, evaluateEquation("-3 + 4".split("""\s+""".toRegex())))
-        assertEquals(3, evaluateEquation("-2 + 4 - 5 + 6".split("""\s+""".toRegex())))
-        assertEquals(27, evaluateEquation("9 +++ 10 -- 8".split("""\s+""".toRegex())))
-        assertEquals(-2, evaluateEquation(" 3 --- 5".split("""\s+""".toRegex())))
-        assertEquals(2, evaluateEquation("14       -   12".split("""\s+""".toRegex())))
+    }
+
+    @Test
+    fun testEvaluateExpression() {
+        varDict.put("MyVarTEE", 37)
+        println(varDict.info())
+        assertEquals(46, evaluateExpression("9 + MyVarTEE", varDict))
+
+        assertEquals(43, evaluateExpression("3 + 4 - 17 + 37 ---- 16"))
+        assertEquals(5, evaluateExpression("10 --- 5"))
+        assertEquals(15, evaluateExpression("10 -- 5"))
+        assertEquals(5, evaluateExpression("10 - 5  "))
+
+        assertEquals(-3, evaluateExpression("-3".split("""\s+""".toRegex())))
+        assertEquals(1, evaluateExpression("-3 + 4".split("""\s+""".toRegex())))
+        assertEquals(3, evaluateExpression("-2 + 4 - 5 + 6".split("""\s+""".toRegex())))
+        assertEquals(27, evaluateExpression("9 +++ 10 -- 8".split("""\s+""".toRegex())))
+        assertEquals(-2, evaluateExpression(" 3 --- 5".split("""\s+""".toRegex())))
+        assertEquals(2, evaluateExpression("14       -   12".split("""\s+""".toRegex())))
     }
 
     @Test

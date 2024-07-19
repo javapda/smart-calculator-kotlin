@@ -36,17 +36,25 @@ fun String.isNotPlusMinusSequence(): Boolean = this.any(Char::isNotPlusOrMinusOp
 fun String.isPlusMinusSequence(): Boolean = !isNotPlusMinusSequence()
 fun String.isValidExpression(): Boolean {
     val tokens = this.split("""\s+""".toRegex())
-    return tokens.all { token -> (token.isNumber() || token.isPlusMinusSequence()) }
+    return tokens.all { token -> (token.isNumber() || token.isPlusMinusSequence() || token.isValidVariableName()) }
 }
+
+fun String.hasNonExistentVariables(varProv: VariableProvider): Boolean =
+    this.split("""\s+""".toRegex()).any {
+        it.isNotNumber() && it.isValidVariableName() && !varProv.hasVariable(it)
+    }
+
 
 interface VariableProvider {
     fun hasVariable(variableCandidate: String): Boolean
     fun getVariableValue(variableCandidate: String): Int
+    fun put(variableName: String, number: Int): Pair<String, Int>
 }
 
 fun String.isInvalidExpression(): Boolean = !isValidExpression()
-val validCommands = listOf("/exit", "/help")
+val validCommands = listOf("/exit", "/help", "/info")
 fun String.looksLikeACommand(): Boolean = isNotBlank() && this[0] == '/'
+fun String.looksLikeAssignment(): Boolean = isNotBlank() && this.contains("=")
 fun String.isValidCommand(): Boolean = looksLikeACommand() && this in validCommands
 fun String.isInvalidCommand(): Boolean = !isValidCommand()
 fun String.isValidUserInput(): Boolean = isValidEquation() || isValidExpression() || isValidCommand()
@@ -69,6 +77,8 @@ fun String.isValidRHS(varProv: VariableProvider = vd): Boolean =
                 (token.isValidVariableName() && token.isExistingVariable(varProv)))
     }
 
+fun String.isInvalidRHS(varProv: VariableProvider = vd): Boolean = !isValidRHS(varProv)
+fun String.isSingleToken(): Boolean = this.split("""\s+""".toRegex()).count() == 1 && !this.contains("=")
 fun String.isValidEquation(varProv: VariableProvider = vd): Boolean {
     val tokens = this.split("=").map(String::trim)
     if (tokens.size != 2) return false
@@ -79,6 +89,8 @@ fun String.isValidEquation(varProv: VariableProvider = vd): Boolean {
     return rhs.isValidRHS(varProv)
 
 }
+
+fun String.isInvalidEquation(varProv: VariableProvider = vd): Boolean = !isValidEquation(varProv)
 
 /**
  * Plus minus net operator
@@ -94,18 +106,27 @@ fun String.plusMinusNetOperator(): Char {
     return if (this.count { token -> token.isMathOperator() && token == '-' }.isOdd()) '-' else '+'
 }
 
-fun evaluateEquation(tokenString: String): Int = evaluateEquation(tokenString.split("""\s+""".toRegex()))
-fun evaluateEquation(tokens: List<String>): Int {
+fun evaluateExpression(tokenString: String, varProv: VariableProvider = vd): Int =
+    evaluateExpression(tokenString.split("""\s+""".toRegex()), varProv)
+
+fun evaluateExpression(tokens: List<String>, varProv: VariableProvider = vd): Int {
     var result = 0
     var plusMinusSequence = ""
+    fun adjustResult(num: Int) {
+        if (plusMinusSequence.plusMinusNetOperator().isMinusOperator()) {
+            result -= num
+        } else {
+            result += num
+        }
+        plusMinusSequence = ""
+
+    }
     tokens.forEachIndexed { idx, token ->
-        if (token.isNumber()) {
-            if (plusMinusSequence.plusMinusNetOperator().isMinusOperator()) {
-                result -= token.toInt()
-            } else {
-                result += token.toInt()
-            }
-            plusMinusSequence = ""
+        if (token.isValidVariableName()) {
+            val value = token.existingVariableValue(varProv)
+            adjustResult(value)
+        } else if (token.isNumber()) {
+            adjustResult(token.toInt())
         } else if (token.isPlusMinusSequence()) {
             plusMinusSequence += token
         } else {
@@ -114,3 +135,12 @@ fun evaluateEquation(tokens: List<String>): Int {
     }
     return result
 }
+
+fun evaluateEquation(tokenString: String, varProv: VariableProvider = vd) {
+    val (lhs, rhs) = tokenString.split("=").map(String::trim)
+    if (lhs.isInvalidLHS()) throw IllegalArgumentException("invalid LHS '$lhs'")
+    if (rhs.isInvalidRHS(varProv)) throw IllegalArgumentException("invalid RHS '$rhs'")
+    varProv.put(lhs, evaluateExpression(rhs, varProv))
+}
+
+

@@ -1,16 +1,27 @@
 package com.javapda.smartcalculator
 
-class SmartCalculator {
+class SmartCalculator(val smartCalculatorVariableDictionary: SmartCalculatorVariableDictionary = vd) {
     fun somethingToTest(): Int = 34
     fun userInput(userInput: String): Boolean {
         if (userInput.isBlank()) return true
         if (userInput.isInvalidUserInput()) {
-            if (userInput.isValidEquation()) {
+            if (userInput.isValidVariableName()) {
                 // need to save the calculated value
+                if (userInput.isExistingVariable(smartCalculatorVariableDictionary)) {
+                    println(userInput.existingVariableValue(smartCalculatorVariableDictionary))
+                } else {
+                    println("Unknown variable")
+                }
             } else if (userInput.looksLikeACommand() && userInput.isInvalidCommand()) {
                 println("Unknown command")
+            } else if (userInput.looksLikeAssignment() && userInput.isInvalidEquation()) {
+                println("Invalid assignment")
+            } else if (userInput.isNotNumber() && userInput.isSingleToken() && userInput.isInvalidVariableName()) {
+                println("Invalid identifier")
             } else if (userInput.isInvalidExpression()) {
                 println("Invalid expression")
+            } else if (userInput.hasNonExistentVariables(smartCalculatorVariableDictionary)) {
+                println("Unknown variable")
             } else {
                 throw IllegalArgumentException("ERROR: user input '$userInput' is neither a valid command nor a valid expression")
             }
@@ -18,7 +29,11 @@ class SmartCalculator {
         }
         when (userInput) {
             "/exit" -> return false
-//            "/info" -> info()
+            "/info" -> {
+                info()
+                return true
+            }
+
             in listOf("/help", "?") -> {
                 help()
                 return true
@@ -26,11 +41,23 @@ class SmartCalculator {
 
             "" -> return true
         }
-        if (userInput.isNotBlank()) {
-            println(evaluateEquation(userInput))
+        if (userInput.isValidEquation()) {
+            evaluateEquation(userInput)
+        } else if (userInput.hasNonExistentVariables(smartCalculatorVariableDictionary)) {
+            println("Unknown variable")
+        } else if (userInput.isValidExpression()) {
+            println(evaluateExpression(userInput))
         }
 
         return true
+    }
+
+    private fun info() {
+        println(
+            """
+            ${smartCalculatorVariableDictionary.info()}
+        """.trimIndent()
+        )
     }
 
     private fun help() {

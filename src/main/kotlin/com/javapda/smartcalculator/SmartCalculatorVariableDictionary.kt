@@ -6,12 +6,28 @@ class SmartCalculatorVariableDictionary : VariableProvider {
 
     override fun getVariableValue(variableCandidate: String): Int = map[variableCandidate]!!
 
-    fun put(variable: String, value: Int): Pair<String, Int> {
-        if (variable.isInvalidVariableName()) {
-            throw IllegalArgumentException("invalid variable name '$variable' provided")
+    override fun put(variableName: String, number: Int): Pair<String, Int> {
+        if (variableName.isInvalidVariableName()) {
+            throw IllegalArgumentException("invalid variable name '$variableName' provided")
         }
-        map[variable] = value
-        return variable to value
+        map[variableName] = number
+        return variableName to number
+    }
+
+    private fun printVariables() =
+        buildString {
+            "**".repeat(20)
+            map.forEach { (key, value) ->
+                appendLine("$key:   $value")
+            }
+        }
+
+    fun info(): String {
+        return """
+            ${this.javaClass.simpleName}
+            No. variables:  ${map.size}
+            ${if (map.isEmpty()) "no variables" else printVariables()}
+        """.trimIndent()
     }
 
     private val map: MutableMap<String, Int> = mutableMapOf()
