@@ -5,7 +5,9 @@ class SmartCalculator {
     fun userInput(userInput: String): Boolean {
         if (userInput.isBlank()) return true
         if (userInput.isInvalidUserInput()) {
-            if (userInput.looksLikeACommand() && userInput.isInvalidCommand()) {
+            if (userInput.isValidEquation()) {
+                // need to save the calculated value
+            } else if (userInput.looksLikeACommand() && userInput.isInvalidCommand()) {
                 println("Unknown command")
             } else if (userInput.isInvalidExpression()) {
                 println("Invalid expression")
@@ -16,6 +18,7 @@ class SmartCalculator {
         }
         when (userInput) {
             "/exit" -> return false
+//            "/info" -> info()
             in listOf("/help", "?") -> {
                 help()
                 return true

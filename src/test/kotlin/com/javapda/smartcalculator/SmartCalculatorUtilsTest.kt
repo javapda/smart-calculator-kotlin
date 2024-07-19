@@ -1,6 +1,7 @@
 package com.javapda.smartcalculator
 
 import org.junit.jupiter.api.Assertions.*
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.ValueSource
@@ -13,6 +14,54 @@ import org.junit.jupiter.params.provider.ValueSource
  */
 class SmartCalculatorUtilsTest {
 
+    lateinit var varDict: SmartCalculatorVariableDictionary
+
+    @BeforeEach
+    fun setUp() {
+        varDict = SmartCalculatorVariableDictionary()
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = ["a = 3 + 7", "b = 65 ++ 86 - PreV"])
+    fun testStringIsValidEquation(equationCandidate: String) {
+        // pre-populate dictionary
+        varDict.put("PreV", 987)
+        assertTrue(equationCandidate.isValidEquation(varDict))
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = ["3 + 7", "85 + JedA"])
+    fun testStringIsValidRHS(rhsCandidate: String) {
+        varDict.put("JedA", 243)
+        assertTrue(rhsCandidate.isValidRHS(varDict))
+    }
+
+
+    @ParameterizedTest
+    @ValueSource(strings = ["a", "nn"])
+    fun testStringIsValidLHS(variableName: String) {
+        assertTrue(variableName.isValidLHS())
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = ["2nn"])
+    fun StringIsInvalidLHS(variableName: String) {
+        assertTrue(variableName.isInvalidLHS())
+    }
+
+
+    @ParameterizedTest
+    @ValueSource(strings = ["n", "m", "a", "v", "count"])
+    fun testStringIsValidVariableName(variableName: String) {
+        assertTrue(variableName.isValidVariableName())
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = ["a2a", "n22"])
+    fun testStringIsInvalidVariableName(variableName: String) {
+        assertTrue(variableName.isInvalidVariableName())
+    }
+
     @ParameterizedTest
     @ValueSource(strings = ["/go", "/bogus", "/exit"])
     fun testStringLooksLikeACommand(userInputCandidate: String) {
@@ -20,7 +69,10 @@ class SmartCalculatorUtilsTest {
     }
 
     @ParameterizedTest
-    @ValueSource(strings = ["/exit", "/help", "3 + 7", "5 --- 2 ++++++ 4 -- 2 ---- 1"])
+    @ValueSource(
+        strings = ["n = 5 + 9","x = 5 + 45",
+            "/exit", "/help", "3 + 7", "5 --- 2 ++++++ 4 -- 2 ---- 1"]
+    )
     fun testStringIsValidUserInput(userInputCandidate: String) {
         assertTrue(userInputCandidate.isValidUserInput())
     }
@@ -141,3 +193,4 @@ class SmartCalculatorUtilsTest {
         assertTrue(numText.isNotNumber())
     }
 }
+
