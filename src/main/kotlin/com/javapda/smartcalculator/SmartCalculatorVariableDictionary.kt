@@ -1,12 +1,14 @@
 package com.javapda.smartcalculator
 
+import java.math.BigInteger
+
 class SmartCalculatorVariableDictionary : VariableProvider {
     override fun hasVariable(variableCandidate: String): Boolean =
         map.containsKey(variableCandidate)
 
-    override fun getVariableValue(variableCandidate: String): Int = map[variableCandidate]!!
+    override fun getVariableValue(variableCandidate: String): BigInteger = map[variableCandidate]!!
 
-    override fun put(variableName: String, number: Int): Pair<String, Int> {
+    override fun put(variableName: String, number: BigInteger): Pair<String, BigInteger> {
         if (variableName.isInvalidVariableName()) {
             throw IllegalArgumentException("invalid variable name '$variableName' provided")
         }
@@ -30,5 +32,5 @@ class SmartCalculatorVariableDictionary : VariableProvider {
         """.trimIndent()
     }
 
-    private val map: MutableMap<String, Int> = mutableMapOf()
+    private val map: MutableMap<String, BigInteger> = mutableMapOf()
 }

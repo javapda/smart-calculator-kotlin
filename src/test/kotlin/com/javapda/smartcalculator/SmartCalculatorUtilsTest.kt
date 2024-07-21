@@ -20,10 +20,52 @@ class SmartCalculatorUtilsTest {
     @BeforeEach
     fun setUp() {
         varDict = SmartCalculatorVariableDictionary()
-        varDict.put("Atu", 42) // Atu = Answer to the universe
-        varDict.put("a", 4) // https://hyperskill.org/projects/88/stages/492/implement
-        varDict.put("b", 5) // https://hyperskill.org/projects/88/stages/492/implement
-        varDict.put("c", 6) // https://hyperskill.org/projects/88/stages/492/implement
+        varDict.put("Atu", 42.toBigInteger()) // Atu = Answer to the universe
+        varDict.put("a", 4.toBigInteger()) // https://hyperskill.org/projects/88/stages/492/implement
+        varDict.put("b", 5.toBigInteger()) // https://hyperskill.org/projects/88/stages/492/implement
+        varDict.put("c", 6.toBigInteger()) // https://hyperskill.org/projects/88/stages/492/implement
+    }
+
+    @Test
+    fun testBigIntegerMath() {
+        assertEquals(
+            "1122345679012234567890",
+            ("112234567890".toBigInteger() + "112234567890".toBigInteger() * ("10000000999".toBigInteger() - "999".toBigInteger())).toString()
+        )
+    }
+
+    @Test
+    fun testBigDecimalMath() {
+        val result =
+            "112234567890".toBigDecimal() + "112234567890".toBigDecimal() * ("10000000999".toBigDecimal() - "999".toBigDecimal())
+        assertEquals(
+            "1122345679012234567890",
+            ("112234567890".toBigDecimal() + "112234567890".toBigDecimal() * ("10000000999".toBigDecimal() - "999".toBigDecimal())).toString()
+        )
+    }
+
+    @ParameterizedTest
+    @ValueSource(
+        strings = [
+            "112234567890",
+            "1122345679012234567890",
+            "1122345679012234567890",
+        ]
+    )
+    fun testBigIntegerl(bigNumberAsText: String) {
+        bigNumberAsText.toBigInteger()
+    }
+
+    @ParameterizedTest
+    @ValueSource(
+        strings = [
+            "1AB122345679012234567890",
+        ]
+    )
+    fun testBigIntegerThrowException(bigNumberAsText: String) {
+        assertThrows(NumberFormatException::class.java) {
+            "1AB122345679012234567890".toBigInteger()
+        }
     }
 
     @ParameterizedTest
@@ -34,8 +76,8 @@ class SmartCalculatorUtilsTest {
     }
 
     @ParameterizedTest
-    @ValueSource(strings=["***", """//""", "*** front-loaded","rear-loaded ***"])
-    fun testContainsTimesOrDivideSequence(testData:String) {
+    @ValueSource(strings = ["***", """//""", "*** front-loaded", "rear-loaded ***"])
+    fun testContainsTimesOrDivideSequence(testData: String) {
         assertTrue(testData.containsTimesOrDivideSequence())
     }
 
@@ -180,14 +222,14 @@ class SmartCalculatorUtilsTest {
     @ValueSource(strings = ["a = 3 + 7", "b = 65 ++ 86 - PreV"])
     fun testStringIsValidEquation(equationCandidate: String) {
         // pre-populate dictionary
-        varDict.put("PreV", 987)
+        varDict.put("PreV", 987.toBigInteger())
         assertTrue(equationCandidate.isValidEquation(varDict))
     }
 
     @ParameterizedTest
     @ValueSource(strings = ["3 + 7", "85 + JedA"])
     fun testStringIsValidRHS(rhsCandidate: String) {
-        varDict.put("JedA", 243)
+        varDict.put("JedA", 243.toBigInteger())
         assertTrue(rhsCandidate.isValidRHS(varDict))
     }
 
@@ -259,7 +301,6 @@ class SmartCalculatorUtilsTest {
         assertTrue(commandCandidate.isInvalidCommand())
     }
 
-
     @ParameterizedTest
     @ValueSource(strings = ["3 + 5", "+15", "8 * 3 + 12 * (4 - 2)", "abc"])
     fun testStringIsValidExpression(expressionCandidate: String) {
@@ -274,7 +315,7 @@ class SmartCalculatorUtilsTest {
 
     @Test
     fun testEvaluateEquation() {
-        varDict.put("MyVarTestEvaluateEquation", 37)
+        varDict.put("MyVarTestEvaluateEquation", 37.toBigInteger())
         println(varDict.info())
         evaluateEquation("n = 9 + MyVarTestEvaluateEquation", varDict)
         assertTrue("n".isExistingVariable(varDict))
@@ -283,7 +324,7 @@ class SmartCalculatorUtilsTest {
 
     @Test
     fun testEvaluateExpression() {
-        varDict.put("MyVarTEE", 37)
+        varDict.put("MyVarTEE", 37.toBigInteger())
         println(varDict.info())
         assertEquals(46, evaluateExpression("9 + MyVarTEE", varDict))
 

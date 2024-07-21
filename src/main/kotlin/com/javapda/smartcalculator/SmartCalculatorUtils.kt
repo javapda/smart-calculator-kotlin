@@ -1,5 +1,6 @@
 package com.javapda.smartcalculator
 
+import java.math.BigInteger
 import java.util.*
 
 fun <T> reqPOA(expected: T, actual: T) {
@@ -35,7 +36,7 @@ fun String.isRightParenthesis(): Boolean = this == ")"
 const val supportedMathOperators = "+-*/"
 fun String.isMathOperator(): Boolean = this in supportedMathOperators
 fun String.isNotMathOperator(): Boolean = !isMathOperator()
-fun String.isNumber(): Boolean = toDoubleOrNull() != null
+fun String.isNumber(): Boolean = toBigDecimalOrNull() != null
 fun Char.isNumber(): Boolean = this in '0'..'9'
 fun Char.isNotNumber(): Boolean = !isNumber()
 fun Char.isPeriod(): Boolean = this == '.'
@@ -72,8 +73,8 @@ fun String.hasNonExistentVariables(varProv: VariableProvider): Boolean =
 
 interface VariableProvider {
     fun hasVariable(variableCandidate: String): Boolean
-    fun getVariableValue(variableCandidate: String): Int
-    fun put(variableName: String, number: Int): Pair<String, Int>
+    fun getVariableValue(variableCandidate: String): BigInteger
+    fun put(variableName: String, number: BigInteger): Pair<String, BigInteger>
 }
 
 fun String.isInvalidExpression(): Boolean = !isValidExpression()
@@ -91,7 +92,7 @@ val vd = SmartCalculatorVariableDictionary()
 fun String.isExistingVariable(varProv: VariableProvider = vd): Boolean =
     isValidVariableName() && varProv.hasVariable(this)
 
-fun String.existingVariableValue(varProv: VariableProvider = vd): Int =
+fun String.existingVariableValue(varProv: VariableProvider = vd): BigInteger =
     if (isValidVariableName() && varProv.hasVariable(this))
         varProv.getVariableValue(this) else throw IllegalAccessException("variable '$this' does not exist in variable provider")
 
@@ -153,13 +154,13 @@ fun String.plusMinusNetOperator(): Char {
     return if (this.count { token -> token.isMathOperator() && token == '-' }.isOdd()) '-' else '+'
 }
 
-fun evaluateExpression(tokenString: String, varProv: VariableProvider = vd): Int =
+fun evaluateExpression(tokenString: String, varProv: VariableProvider = vd): BigInteger =
     evaluateExpression(tokenString.split("""\s+""".toRegex()), varProv)
 
-fun evaluateExpression(tokens: List<String>, varProv: VariableProvider = vd): Int {
-    var result = 0
+fun evaluateExpression(tokens: List<String>, varProv: VariableProvider = vd): BigInteger {
+    var result = BigInteger.ZERO
     var plusMinusSequence = ""
-    fun adjustResult(num: Int) {
+    fun adjustResult(num: BigInteger) {
         if (plusMinusSequence.plusMinusNetOperator().isMinusOperator()) {
             result -= num
         } else {
@@ -173,7 +174,7 @@ fun evaluateExpression(tokens: List<String>, varProv: VariableProvider = vd): In
             val value = token.existingVariableValue(varProv)
             adjustResult(value)
         } else if (token.isNumber()) {
-            adjustResult(token.toInt())
+            adjustResult(token.toBigInteger())
         } else if (token.isPlusMinusSequence()) {
             plusMinusSequence += token
         } else {
@@ -256,15 +257,15 @@ fun isHigherMathOperatorPrecedence(leftOperator: String, rightOperator: String):
     return supportedMathOperators.indexOf(leftOperator) > supportedMathOperators.indexOf(rightOperator)
 }
 
-fun evaluateInfixExpression(infixExpression: String, varProv: VariableProvider = vd, verbose: Boolean = true): Int {
+fun evaluateInfixExpression(infixExpression: String, varProv: VariableProvider = vd, verbose: Boolean = true): BigInteger {
     return evaluatePostfixExpression(convertInfixToPostfix(infixExpression), varProv, verbose)
 }
 
-fun evaluatePostfixExpression(postfixExpression: String, varProv: VariableProvider = vd, verbose: Boolean = true): Int {
+fun evaluatePostfixExpression(postfixExpression: String, varProv: VariableProvider = vd, verbose: Boolean = true): BigInteger {
     val stack = Stack<String>()
     val tokens = postfixExpression.split("""\s+""".toRegex())
-    fun toNumber(operand: String): Int {
-        return if (operand.isNumber()) operand.toInt() else operand.existingVariableValue(varProv)
+    fun toNumber(operand: String): BigInteger {
+        return if (operand.isNumber()) operand.toBigInteger() else operand.existingVariableValue(varProv)
     }
 
     tokens.forEach { token ->
@@ -282,7 +283,7 @@ fun evaluatePostfixExpression(postfixExpression: String, varProv: VariableProvid
                 } else if (token == "*") {
                     stack.push((operand1 * operand2).toString())
                 } else if (token == "/") {
-                    if (operand2 == 0) {
+                    if (operand2 == BigInteger.ZERO) {
                         throw IllegalArgumentException("evaluatePostfixExpression : ZERO not allowed in DENOMINATOR")
                     }
                     stack.push((operand1 / operand2).toString())
@@ -294,7 +295,7 @@ fun evaluatePostfixExpression(postfixExpression: String, varProv: VariableProvid
         }
     }
     val result = stack.pop()
-    return if (result.isNumber()) result.toInt() else
+    return if (result.isNumber()) result.toBigInteger() else
         throw IllegalArgumentException("evaluatePostfixExpression: result='$result' is not a number, ")
 }
 

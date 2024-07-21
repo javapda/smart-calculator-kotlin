@@ -15,7 +15,7 @@ class SmartCalculatorVariableDictionaryTest {
     @Test
     fun existingVariableValue() {
         val variableName = "myVar"
-        val variableValue = 998
+        val variableValue = 998.toBigInteger()
         varDict.put(variableName, variableValue)
         assertEquals(variableValue, variableName.existingVariableValue(varDict))
 
@@ -31,14 +31,14 @@ class SmartCalculatorVariableDictionaryTest {
     @Test
     fun hasVariable() {
         val variableName = "myVar"
-        varDict.put(variableName, 234)
+        varDict.put(variableName, 234.toBigInteger())
         assertTrue(varDict.hasVariable(variableName))
     }
 
     @Test
     fun testBadVariableName() {
         assertThrows(IllegalArgumentException::class.java) {
-            varDict.put("BoguS321Variable", 654)
+            varDict.put("BoguS321Variable", 654.toBigInteger())
         }
 
     }

@@ -102,7 +102,25 @@ Kotlin: Plugin classpath entry points to a non-existent location: /home/jkroub/.
 Kotlin: Plugin classpath entry points to a non-existent location: /home/jkroub/.gradle/caches/modules-2/files-2.1/org.jetbrains.kotlin/kotlin-script-runtime/1.8.20/c850771e723701f9d63dbcf641429c0f29290074/kotlin-script-runtime-1.8.20.jar
 ```
 
-## Stage 8/8 : 
+## Stage 8/8 : [Very big](https://hyperskill.org/projects/88/stages/493/implement)
+### Description
+In this stage, your program must support arithmetic operations (+, -, *, /) with very large numbers as well as parentheses to change the priority within an expression.
+
+There are two ways to solve it. As an easy way, you may use the standard class for working with large numbers, just correctly apply it to your solution. If you want to practice algorithms, you may develop your own class for large numbers and implement algorithms for the listed arithmetic operations.
+
+### Example
+The greater-than symbol followed by a space (>) represents the user input.
+```
+> 112234567890 + 112234567890 * (10000000999 - 999)
+1122345679012234567890
+> a = 800000000000000000000000
+> b = 100000000000000000000000
+> a + b
+900000000000000000000000
+> /exit
+Bye!
+```
+The program should not stop until the user enters the /exit command.
 ## Stage 7/8 : I’ve got the power
 ### Description
 In the final stage, it remains to add operations: multiplication *, integer division / and parentheses (...). They have a higher priority than addition + and subtraction -.
