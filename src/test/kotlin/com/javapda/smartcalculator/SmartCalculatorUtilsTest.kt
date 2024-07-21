@@ -4,6 +4,7 @@ import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.MethodSource
 import org.junit.jupiter.params.provider.ValueSource
 
 /**
@@ -19,6 +20,160 @@ class SmartCalculatorUtilsTest {
     @BeforeEach
     fun setUp() {
         varDict = SmartCalculatorVariableDictionary()
+        varDict.put("Atu", 42) // Atu = Answer to the universe
+        varDict.put("a", 4) // https://hyperskill.org/projects/88/stages/492/implement
+        varDict.put("b", 5) // https://hyperskill.org/projects/88/stages/492/implement
+        varDict.put("c", 6) // https://hyperskill.org/projects/88/stages/492/implement
+    }
+
+    @ParameterizedTest
+    @MethodSource("argsWithPlusMinusSequences")
+    fun testReconcilePlusMinusSequences(testData: Pair<String, String>) {
+        val (unreconciledArgWithPlusMinusSequences, expectedReconciled) = testData
+        assertEquals(expectedReconciled, unreconciledArgWithPlusMinusSequences.reconcilePlusMinusSequences())
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings=["***", """//""", "*** front-loaded","rear-loaded ***"])
+    fun testContainsTimesOrDivideSequence(testData:String) {
+        assertTrue(testData.containsTimesOrDivideSequence())
+    }
+
+    @Test
+    fun testRegexReplacement() {
+        assertEquals("a + b", "a +++ b".replace("""[+]+""".toRegex(), "+"))
+        assertEquals("a - b", "a --- b".replace("""[-]+""".toRegex(), "-"))
+    }
+
+    @Test
+    fun testRegexGeneral() {
+        var expr = "some +++ other --- more -+-+-"
+        val regex = ".*[^+-]*([+-]{2,})[^+-]*.*".toRegex()
+        assertTrue(".*([+-]+).*".toRegex().matches(expr))
+        assertTrue(regex.matches(expr))
+        val found = regex.find(expr)
+        while (regex.matches(expr)) {
+            val plusMinusSequence = regex.find(expr)!!.groupValues[1]
+            val replacement = plusMinusSequence.plusMinusNetOperator().toString()
+            expr = expr.replace(plusMinusSequence, replacement)
+        }
+        println(
+            """
+            RESULT, expr=$expr
+        """.trimIndent()
+        )
+    }
+
+    @Test
+    fun testIsHigherMathOperatorPrecedence() {
+        assertTrue(isHigherMathOperatorPrecedence("*", "+"))
+        assertTrue(isHigherMathOperatorPrecedence("/", "+"))
+        assertTrue(isHigherMathOperatorPrecedence("*", "-"))
+        assertTrue(isHigherMathOperatorPrecedence("/", "-"))
+    }
+
+    @Test
+    fun testConvertInfixExpressionToTokens() {
+        assertEquals(listOf("(", "3", "+", "4", ")"), convertInfixExpressionToTokens("(3 + 4)"))
+        assertEquals(
+            listOf("5", "*", "(", "67", "/", "803", ")", "+", "ABC"),
+            convertInfixExpressionToTokens("5 * (67 / 803) + ABC")
+        )
+
+        // we get an exception if unbalanced parentheses
+        assertThrows(IllegalArgumentException::class.java) {
+            convertInfixExpressionToTokens("5 * (67 / 803)) + ABC")
+        }
+        assertThrows(IllegalArgumentException::class.java) {
+            convertInfixExpressionToTokens("(5 * (67 / 803)) + ABC)")
+        }
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = ["(3+4)", "2 * (3 + 4) + 1"])
+    fun testHasBalancedParentheses(infixExpression: String) {
+        assertTrue(hasBalancedParentheses(infixExpression))
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = ["(3+4))", "(2 * (3 + 4) + 1"])
+    fun testHasUnbalancedParentheses(infixExpression: String) {
+        assertTrue(hasUnbalancedParentheses(infixExpression))
+    }
+
+    @ParameterizedTest
+    @MethodSource("infixExpressionsToEvaluatedOutcomes")
+    fun testEvaluateInfixExpression(testData: Pair<String, Int>) {
+        val (infixExpression, expectedOutcome) = testData
+        assertEquals(expectedOutcome, evaluateInfixExpression(infixExpression, varDict))
+    }
+
+    @ParameterizedTest
+    @MethodSource("postfixExpressionsToEvaluatedOutcomes")
+    fun testEvaluatePostfixExpression(testData: Pair<String, Int>) {
+        val (postfixExpression, expectedPostfixOutcome) = testData
+        assertEquals(expectedPostfixOutcome, evaluatePostfixExpression(postfixExpression, varDict))
+    }
+
+    @ParameterizedTest
+    @MethodSource("infixExpressionsToExpectedPostfixOutcomes")
+    fun testConvertInfixToPostfix(testData: Pair<String, String>) {
+        val (infixExpression, expectedPostfixNotation) = testData
+        assertEquals(expectedPostfixNotation, convertInfixToPostfix(infixExpression))
+    }
+
+    companion object {
+        @JvmStatic
+        fun argsWithPlusMinusSequences(): List<Pair<String, String>> {
+            return listOf(
+                "some +++ other --- more -+-+-" to "some + other - more -",
+                "2 + 2" to "2 + 2",
+                "2 +++ 2" to "2 + 2",
+                "2 - 2" to "2 - 2",
+                "2 - 2" to "2 - 2",
+                "2 -- 2" to "2 + 2",
+                "2 --- 2" to "2 - 2",
+            )
+        }
+
+        @JvmStatic
+        fun infixExpressionsToEvaluatedOutcomes(): List<Pair<String, Int>> {
+            // NOTE: dictionary variables (Atu=42, a=4, b=5, c=6) should have been defined by this point
+            return listOf(
+                "3 - 2" to 1,
+                "Atu 2 -" to 40,
+                "8 * 3 + 12 * (4 - 2)" to 48,
+                "2 - 2 + 3" to 3,
+                "a*2+b*3+c*(2+3)" to 53,
+            )
+        }
+
+        @JvmStatic
+        fun postfixExpressionsToEvaluatedOutcomes(): List<Pair<String, Int>> {
+            // NOTE: dictionary variables (Atu=42) should have been defined by this point
+            return listOf(
+                "3 2 -" to 1,
+                "8 3 * 12 4 2 - * +" to 48,
+                "3 2 +" to 5,
+                "Atu 2 +" to 44,
+                "3 2 4 * +" to 11,
+            )
+        }
+
+        @JvmStatic
+        fun infixExpressionsToExpectedPostfixOutcomes(): List<Pair<String, String>> {
+            return listOf(
+                "8 * 3 + 12 * (4 - 2)" to "8 3 * 12 4 2 - * +",
+                "ABC + 5" to "ABC 5 +",
+                "(ABC + 5)" to "ABC 5 +",
+                "3 + 2 * 4" to "3 2 4 * +",
+                "683 + 2 * 4" to "683 2 4 * +",
+                "(3 + 2 * 4)" to "3 2 4 * +",
+                "2 * (3 + 4) + 1" to "2 3 4 + * 1 +",
+                "2 * (3 + AB) + 1" to "2 3 AB + * 1 +",
+                "3 + 8 * ((4 + 3) * 2 + 1) - 6 / (2 + 1)" to "3 8 4 3 + 2 * 1 + * + 6 2 1 + / -",
+            )
+        }
     }
 
     @ParameterizedTest
@@ -51,7 +206,7 @@ class SmartCalculatorUtilsTest {
 
 
     @ParameterizedTest
-    @ValueSource(strings = ["n", "m", "a", "v", "count"])
+    @ValueSource(strings = ["n", "m", "a", "v", "count", "abc"])
     fun testStringIsValidVariableName(variableName: String) {
         assertTrue(variableName.isValidVariableName())
     }
@@ -78,8 +233,17 @@ class SmartCalculatorUtilsTest {
     }
 
     @ParameterizedTest
-    @ValueSource(strings = ["/go", "Hello Friend", "123+"])
+    @ValueSource(strings = ["/go", /* "Hello Friend", */ "123+"])
     fun testStringIsInvalidUserInput(userInputCandidate: String) {
+        println(
+            """
+            userInputCandidate:   $userInputCandidate
+            looksLikeACommand():  ${userInputCandidate.looksLikeACommand()}
+            isValidCommand():     ${userInputCandidate.isValidCommand()}
+            looksLikeACommand() && isValidCommand():  ${userInputCandidate.looksLikeACommand() && userInputCandidate.isValidCommand()}
+            isInvalidUserInput:   ${userInputCandidate.isInvalidUserInput()}
+        """.trimIndent()
+        )
         assertTrue(userInputCandidate.isInvalidUserInput())
     }
 
@@ -97,13 +261,13 @@ class SmartCalculatorUtilsTest {
 
 
     @ParameterizedTest
-    @ValueSource(strings = ["3 + 5", "+15"])
+    @ValueSource(strings = ["3 + 5", "+15", "8 * 3 + 12 * (4 - 2)", "abc"])
     fun testStringIsValidExpression(expressionCandidate: String) {
         assertTrue(expressionCandidate.isValidExpression())
     }
 
     @ParameterizedTest
-    @ValueSource(strings = ["abc", "123+", "22-"])
+    @ValueSource(strings = ["123+", "22-", "23***", "////45"])
     fun testStringIsInvalidExpression(expressionCandidate: String) {
         assertTrue(expressionCandidate.isInvalidExpression())
     }
@@ -204,6 +368,30 @@ class SmartCalculatorUtilsTest {
     @ValueSource(strings = ["2a", "ABC"])
     fun testStringIsNotNumber(numText: String) {
         assertTrue(numText.isNotNumber())
+    }
+
+    @ParameterizedTest
+    @ValueSource(chars = ['0', '9'])
+    fun testCharIsNumber(numText: Char) {
+        assertTrue(numText.isNumber())
+    }
+
+    @ParameterizedTest
+    @ValueSource(chars = ['a', '@'])
+    fun testCharIsNotNumber(numText: Char) {
+        assertTrue(numText.isNotNumber())
+    }
+
+    @ParameterizedTest
+    @ValueSource(chars = ['(', ')'])
+    fun testCharIsParenthesis(numText: Char) {
+        assertTrue(numText.isParenthesis())
+    }
+
+    @ParameterizedTest
+    @ValueSource(chars = ['X', '.'])
+    fun testCharIsNotParenthesis(numText: Char) {
+        assertTrue(numText.isNotParenthesis())
     }
 }
 

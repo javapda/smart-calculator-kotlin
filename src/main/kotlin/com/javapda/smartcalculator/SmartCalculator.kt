@@ -2,8 +2,9 @@ package com.javapda.smartcalculator
 
 class SmartCalculator(val smartCalculatorVariableDictionary: SmartCalculatorVariableDictionary = vd) {
     fun somethingToTest(): Int = 34
-    fun userInput(userInput: String): Boolean {
-        if (userInput.isBlank()) return true
+    fun userInput(userInputGiven: String): Boolean {
+        if (userInputGiven.isBlank()) return true
+        val userInput=userInputGiven.trim()
         if (userInput.isInvalidUserInput()) {
             if (userInput.isValidVariableName()) {
                 // need to save the calculated value
@@ -16,6 +17,8 @@ class SmartCalculator(val smartCalculatorVariableDictionary: SmartCalculatorVari
                 println("Unknown command")
             } else if (userInput.looksLikeAssignment() && userInput.isInvalidEquation()) {
                 println("Invalid assignment")
+            } else if (hasUnbalancedParentheses(userInput)) {
+                println("Invalid expression")
             } else if (userInput.isNotNumber() && userInput.isSingleToken() && userInput.isInvalidVariableName()) {
                 println("Invalid identifier")
             } else if (userInput.isInvalidExpression()) {
@@ -25,6 +28,7 @@ class SmartCalculator(val smartCalculatorVariableDictionary: SmartCalculatorVari
             } else {
                 throw IllegalArgumentException("ERROR: user input '$userInput' is neither a valid command nor a valid expression")
             }
+
             return true
         }
         when (userInput) {
@@ -45,8 +49,13 @@ class SmartCalculator(val smartCalculatorVariableDictionary: SmartCalculatorVari
             evaluateEquation(userInput)
         } else if (userInput.hasNonExistentVariables(smartCalculatorVariableDictionary)) {
             println("Unknown variable")
+        } else if (userInput.isNumber()) {
+            println(userInput)
+        } else if (userInput.isExistingVariable(smartCalculatorVariableDictionary)) {
+            println(userInput.existingVariableValue(smartCalculatorVariableDictionary))
         } else if (userInput.isValidExpression()) {
-            println(evaluateExpression(userInput))
+//            println(evaluateExpression(userInput))
+            println(evaluateInfixExpression(userInput.reconcilePlusMinusSequences().trim(), smartCalculatorVariableDictionary))
         }
 
         return true
@@ -69,15 +78,16 @@ class SmartCalculator(val smartCalculatorVariableDictionary: SmartCalculatorVari
               /help       : show this help
               /exit       : exit the program
             examples:
-              INPUT                 OUTPUT
-              -----                 ------
-              -2 + 4 - 5 + 6        3
-              9 +++ 10 -- 8         27
-              3 --- 5               -2
-              14    - 12            12
-              10 --- 5              5
-              10 -- 5               15
-              10 - 5                5
+              INPUT                                       OUTPUT
+              -----                                       ------
+              -2 + 4 - 5 + 6                              3
+              9 +++ 10 -- 8                               27
+              3 --- 5                                     -2
+              14    - 12                                  12
+              10 --- 5                                    5
+              10 -- 5                                     15
+              10 - 5                                      5
+              3 + 8 * ((4 + 3) * 2 + 1) - 6 / (2 + 1)     121
         """.trimIndent()
         )
     }
